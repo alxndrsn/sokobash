@@ -58,15 +58,13 @@ add_box() {
 add_mask() {
 	local mask=$3
 	local index=$(get_index $1 $2)
-	local previous=board[$index]
-	board[$index]=$((previous | mask))
+	board[$index]=$((board[index] | mask))
 }
 
 remove_mask() {
 	local index=$(get_index $1 $2)
 	local mask=$3
-	local previous=board[$index]
-	board[$index]=$((previous & !mask))
+	board[$index]=$((board[index] & !mask))
 }
 
 add_target() {
@@ -78,8 +76,6 @@ do_move() {
 	local d_y=$2
 	local new_x=$((sokoman_x + d_x))
 	local new_y=$((sokoman_y + d_y))
-	if (( $new_x < 0 || $new_x >= $board_width )); then return 1; fi
-	if (( $new_y < 0 || $new_y >= $board_height )); then return 1; fi
 
 	target_square_content=$(get_square $new_x $new_y)
 	if (( $target_square_content & $MASK_WALL )); then return 1; fi

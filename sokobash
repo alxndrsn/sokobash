@@ -9,7 +9,7 @@ MASK_BOX_ON_TARGET=$((MASK_BOX | MASK_TARGET))
 TILE_SOKOMAN='%'
 TILES[$MASK_WALL]='#'
 TILES[$MASK_BOX]='0'
-TILES[$MASK_EMPTY]='.'
+TILES[$MASK_EMPTY]=' '
 TILES[$MASK_TARGET]='_'
 TILES[$MASK_BOX_ON_TARGET]='$'
 
@@ -22,6 +22,10 @@ debug() {
 
 load_game_state() {
 	board_width=12
+	board_head="#"
+	for ((i=0; i<$board_width; ++i)); do
+		board_head="${board_head}#"
+	done
 	board_height=5
 	total_tiles=$((board_height * board_width))
 	for ((i=0; i<$total_tiles; ++i)); do
@@ -108,7 +112,7 @@ draw_hud() {
 }
 
 draw_board() {
-	local disp=''
+	local disp="${board_head}#\n#"
 	local counter=$board_width
 	local sokoman_index=$((sokoman_y * board_width + sokoman_x))
 	for ((i=0; i<$total_tiles; ++i)); do
@@ -118,11 +122,11 @@ draw_board() {
 			local disp="${disp}${TILES[${board[$i]}]}"
 		fi
 		if ((--counter == 0)); then
-			local disp="$disp\n"
+			local disp="${disp}#\n#"
 			local counter=$board_width
 		fi
 	done
-	echo -e "${disp}"
+	echo -e "${disp}${board_head}"
 }
 
 get_square() {

@@ -117,8 +117,7 @@ draw_board() {
 		else
 			local disp="${disp}${TILES[${board[$i]}]}"
 		fi
-		(( --counter ))
-		if (($counter == 0)); then
+		if ((--counter == 0)); then
 			local disp="$disp\n"
 			local counter=$board_width
 		fi

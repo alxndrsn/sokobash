@@ -52,9 +52,31 @@ game_loop() {
 	process_input
 }
 
+do_move() {
+	local d_x=$1
+	local d_y=$2
+	local new_x=$(($sokoman_x + $d_x))
+	local new_y=$(($sokoman_y + $d_y))
+	if (( $new_x < 0 || $new_x >= $board_width )); then return 0; fi
+	if (( $new_y < 0 || $new_y >= $board_height )); then return 0; fi
+	sokoman_x=$new_x
+	sokoman_y=$new_y
+}
+
 process_input() {
-	read -s -n 1 in_key
-	info "Received keyboard input: $in_key"
+	while true; do
+		read -s -n 1 in_key
+		info "Received keyboard input: $in_key"
+		case $in_key in
+			w ) if do_move 0 -1; then break; fi;;
+			a ) if do_move -1 0; then break; fi;;
+			s ) if do_move 0 1; then break; fi;;
+			d ) if do_move 1 0; then break; fi;;
+			q )
+				echo "# Thanks for playing :¬)"
+				exit
+		esac
+	done
 }
 
 draw_board() {
@@ -99,8 +121,9 @@ get_tile() {
 	fi
 }
 
+reset
 load_game_state
-#while true; do
+while true; do
 	game_loop
-#done
+done
 

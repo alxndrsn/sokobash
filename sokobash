@@ -3,8 +3,8 @@
 MASK_TARGET=$((1 << 0))
 MASK_WALL=$((1 << 1))
 MASK_BOX=$((1 << 2))
-MASK_NOT_EMPTY=$(($MASK_WALL | $MASK_BOX))
-MASK_BOX_ON_TARGET=$(($MASK_BOX | $MASK_TARGET))
+MASK_NOT_EMPTY=$((MASK_WALL | MASK_BOX))
+MASK_BOX_ON_TARGET=$((MASK_BOX | MASK_TARGET))
 
 TILE_SOKOMAN='%'
 TILES[$MASK_WALL]='#'
@@ -23,7 +23,7 @@ debug() {
 load_game_state() {
 	board_width=12
 	board_height=5
-	total_tiles=$(($board_height * $board_width))
+	total_tiles=$((board_height * board_width))
 	for ((i=0; i<$total_tiles; ++i)); do
 		board[$i]=0
 	done
@@ -39,7 +39,7 @@ load_game_state() {
 get_index() {
 	local x=$1
 	local y=$2
-	echo $(($y * $board_width + $x))
+	echo $((y * board_width + x))
 }
 
 add_box() {
@@ -50,14 +50,14 @@ add_mask() {
 	local mask=$3
 	local index=$(get_index $1 $2)
 	local previous=board[$index]
-	board[$index]=$(($previous | $mask))
+	board[$index]=$((previous | mask))
 }
 
 remove_mask() {
 	local index=$(get_index $1 $2)
 	local mask=$3
 	local previous=board[$index]
-	board[$index]=$(($previous & !$mask))
+	board[$index]=$((previous & !mask))
 }
 
 add_target() {
@@ -67,21 +67,21 @@ add_target() {
 do_move() {
 	local d_x=$1
 	local d_y=$2
-	local new_x=$(($sokoman_x + $d_x))
-	local new_y=$(($sokoman_y + $d_y))
+	local new_x=$((sokoman_x + d_x))
+	local new_y=$((sokoman_y + d_y))
 	if (( $new_x < 0 || $new_x >= $board_width )); then return 1; fi
 	if (( $new_y < 0 || $new_y >= $board_height )); then return 1; fi
 
 	target_square_content=$(get_square $new_x $new_y)
 	if (( $target_square_content & $MASK_WALL )); then return 1; fi
 	if (( $target_square_content & $MASK_BOX )); then
-		local new_x_2=$(($new_x + $d_x))
-		local new_y_2=$(($new_y + $d_y))
+		local new_x_2=$((new_x + d_x))
+		local new_y_2=$((new_y + d_y))
 		if (( $(get_square $new_x_2 $new_y_2) & $MASK_NOT_EMPTY )); then return 1; fi
 		remove_mask $new_x $new_y $MASK_BOX
 		add_mask $new_x_2 $new_y_2 $MASK_BOX
 	fi
-	moves_taken=$(($moves_taken + 1))
+	(( ++moves_taken ))
 	sokoman_x=$new_x
 	sokoman_y=$new_y
 }
@@ -110,14 +110,14 @@ draw_hud() {
 draw_board() {
 	local disp=''
 	local counter=$board_width
-	local sokoman_index=$(($sokoman_y * $board_width + $sokoman_x))
+	local sokoman_index=$((sokoman_y * board_width + sokoman_x))
 	for ((i=0; i<$total_tiles; ++i)); do
 		if [[ $i == $sokoman_index ]]; then
 			local disp="${disp}${TILE_SOKOMAN}"
 		else
 			local disp="${disp}${TILES[${board[$i]}]}"
 		fi
-		local counter=$((counter - 1))
+		(( --counter ))
 		if (($counter == 0)); then
 			local disp="$disp\n"
 			local counter=$board_width

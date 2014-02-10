@@ -4,13 +4,14 @@ MASK_TARGET=$((1 << 0))
 MASK_WALL=$((1 << 1))
 MASK_BOX=$((1 << 2))
 MASK_NOT_EMPTY=$(($MASK_WALL | $MASK_BOX))
+MASK_BOX_ON_TARGET=$(($MASK_BOX | $MASK_TARGET))
 
-TILE_EMPTY='.'
-TILE_TARGET='_'
-TILE_BOX='0'
-TILE_BOX_ON_TARGET='$'
-TILE_WALL='#'
 TILE_SOKOMAN='%'
+TILES[$MASK_WALL]='#'
+TILES[$MASK_BOX]='0'
+TILES[$MASK_EMPTY]='.'
+TILES[$MASK_TARGET]='_'
+TILES[$MASK_BOX_ON_TARGET]='$'
 
 info() {
 	echo "# $@" #> /dev/null
@@ -136,19 +137,7 @@ get_tile() {
 		return
 	fi
 	local val=$(get_square $x $y)
-	if (($val & $MASK_WALL)); then
-		echo $TILE_WALL
-	elif (($val & $MASK_BOX)); then
-		if (($val & $MASK_TARGET)); then
-			echo $TILE_BOX_ON_TARGET
-		else
-			echo $TILE_BOX
-		fi
-	elif (($val & $MASK_TARGET)); then
-		echo $TILE_TARGET
-	else
-		echo $TILE_EMPTY
-	fi
+	echo ${TILES[$val]}
 }
 
 is_level_complete() {

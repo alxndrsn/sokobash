@@ -23,9 +23,9 @@ load_game_state() {
 	sokoman_x=1
 	sokoman_y=3
 	add_target 0 0
-	add_target 4 4
+	add_target 11 4
 	add_box 2 2
-	add_box 4 2
+	add_box 11 2
 }
 
 get_index() {

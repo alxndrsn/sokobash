@@ -3,6 +3,7 @@
 MASK_TARGET=$((1 << 0))
 MASK_WALL=$((1 << 1))
 MASK_BOX=$((1 << 2))
+MASK_NOT_EMPTY=$(($MASK_WALL | $MASK_BOX))
 
 info() {
 	echo "# $@" #> /dev/null
@@ -12,16 +13,19 @@ debug() {
 }
 
 load_game_state() {
-	board_width=5
+	board_width=12
 	board_height=5
 	local total_tiles=$(($board_height * $board_width))
 	for ((i=0; i<$total_tiles; ++i)); do
 		board[$i]=0
 	done
+	moves_taken=0
 	sokoman_x=1
 	sokoman_y=3
 	add_target 0 0
+	add_target 4 4
 	add_box 2 2
+	add_box 4 2
 }
 
 get_index() {
@@ -31,19 +35,29 @@ get_index() {
 }
 
 add_box() {
+	add_mask $1 $2 $MASK_BOX
+}
+
+add_mask() {
 	local x=$1
 	local y=$2
-	info "add_box(x=$x, y=$y)"
+	local mask=$3
 	local index=$(get_index $x $y)
-	board[$index]=$MASK_BOX
+	local previous=board[$index]
+	board[$index]=$(($previous | $mask))
+}
+
+remove_mask() {
+	local x=$1
+	local y=$2
+	local mask=$3
+	local index=$(get_index $x $y)
+	local previous=board[$index]
+	board[$index]=$(($previous & !$mask))
 }
 
 add_target() {
-	local x=$1
-	local y=$2
-	info "add_target(x=$x, y=$y)"
-	local index=$(get_index $x $y)
-	board[$index]=$MASK_TARGET
+	add_mask $1 $2 $MASK_TARGET
 }
 
 game_loop() {
@@ -57,8 +71,19 @@ do_move() {
 	local d_y=$2
 	local new_x=$(($sokoman_x + $d_x))
 	local new_y=$(($sokoman_y + $d_y))
-	if (( $new_x < 0 || $new_x >= $board_width )); then return 0; fi
-	if (( $new_y < 0 || $new_y >= $board_height )); then return 0; fi
+	if (( $new_x < 0 || $new_x >= $board_width )); then return 1; fi
+	if (( $new_y < 0 || $new_y >= $board_height )); then return 1; fi
+
+	target_square_content=$(get_square $new_x $new_y)
+	if (( $target_square_content & $MASK_WALL )); then return 1; fi
+	if (( $target_square_content & $MASK_BOX )); then
+		local new_x_2=$(($new_x + $d_x))
+		local new_y_2=$(($new_y + $d_y))
+		if (( $(get_square $new_x_2 $new_y_2) & $MASK_NOT_EMPTY )); then return 1; fi
+		remove_mask $new_x $new_y $MASK_BOX
+		add_mask $new_x_2 $new_y_2 $MASK_BOX
+	fi
+	moves_taken=$(($moves_taken + 1))
 	sokoman_x=$new_x
 	sokoman_y=$new_y
 }
@@ -66,7 +91,7 @@ do_move() {
 process_input() {
 	while true; do
 		read -s -n 1 in_key
-		info "Received keyboard input: $in_key"
+		debug "Received keyboard input: $in_key"
 		case $in_key in
 			w ) if do_move 0 -1; then break; fi;;
 			a ) if do_move -1 0; then break; fi;;
@@ -81,6 +106,7 @@ process_input() {
 
 draw_board() {
 	info "board=$board"
+	info "moves=$moves_taken"
 	for ((y=-1; y<=$board_height; ++y)); do
 		line=""
 		for ((x=-1; x<=$board_width; ++x)); do
@@ -91,20 +117,26 @@ draw_board() {
 	done
 }
 
+get_square() {
+	local x=$1
+	local y=$2
+	if (( $x < 0 || $y < 0 || $x >= $board_width || $y >= $board_height )); then
+		echo $MASK_WALL
+		return
+	fi
+	local index=$(get_index $x $y)
+	echo ${board[$index]}
+}
+
 get_tile() {
 	local x=$1
 	local y=$2
 	debug "get_tile(x=$x, y=$y)"
-	if (( $x < 0 || $x >= $board_width || $y < 0 || $y >= $board_height )); then
-		echo 'w'
-		return
-	fi
 	if [[ $x == $sokoman_x && $y == $sokoman_y ]]; then
 		echo 'S'
 		return
 	fi
-	local index=$(get_index $x $y)
-	local val=${board[$index]}
+	local val=$(get_square $x $y)
 	debug "val='$val'"
 	if (($val & $MASK_WALL)); then
 		echo 'w'

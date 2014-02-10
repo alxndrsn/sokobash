@@ -39,19 +39,15 @@ add_box() {
 }
 
 add_mask() {
-	local x=$1
-	local y=$2
 	local mask=$3
-	local index=$(get_index $x $y)
+	local index=$(get_index $1 $2)
 	local previous=board[$index]
 	board[$index]=$(($previous | $mask))
 }
 
 remove_mask() {
-	local x=$1
-	local y=$2
+	local index=$(get_index $1 $2)
 	local mask=$3
-	local index=$(get_index $x $y)
 	local previous=board[$index]
 	board[$index]=$(($previous & !$mask))
 }
@@ -92,15 +88,19 @@ process_input() {
 			s ) if do_move 0 1; then break; fi;;
 			d ) if do_move 1 0; then break; fi;;
 			q )
-				echo "# Thanks for playing :¬)"
+				echo ""
+				echo "> Thanks for playing :¬)"
 				exit
 		esac
 	done
 }
 
+draw_hud() {
+	echo "> moves=$moves_taken"
+	echo ""
+}
+
 draw_board() {
-	info "board=$board"
-	info "moves=$moves_taken"
 	for ((y=-1; y<=$board_height; ++y)); do
 		line=""
 		for ((x=-1; x<=$board_width; ++x)); do
@@ -160,9 +160,11 @@ reset
 load_game_state
 while true; do
 	clear
+	draw_hud
 	draw_board
 	if is_level_complete; then
-		echo "# Congratulations, you have completed the level :¬)"
+		echo ""
+		echo "> Congratulations, you have completed the level :¬)"
 		exit
 	else
 		process_input

@@ -136,17 +136,6 @@ get_square() {
 	echo ${board[$index]}
 }
 
-get_tile() {
-	local x=$1
-	local y=$2
-	if [[ $x == $sokoman_x && $y == $sokoman_y ]]; then
-		echo $TILE_SOKOMAN
-		return
-	fi
-	local val=$(get_square $x $y)
-	echo ${TILES[$val]}
-}
-
 is_level_complete() {
 	for ((i=0; i<$total_tiles; ++i)); do
 		if (( board[$i] == $MASK_TARGET )); then

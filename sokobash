@@ -32,12 +32,17 @@ load_game_state() {
 		board[$i]=0
 	done
 	moves_taken=0
-	sokoman_x=1
-	sokoman_y=3
+	set_sokoman_location 1 3
 	add_target 0 0
 	add_target 11 4
 	add_box 2 2
 	add_box 11 2
+}
+
+set_sokoman_location() {
+	sokoman_x=$1
+	sokoman_y=$2
+	sokoman_index=$((sokoman_y * board_width + sokoman_x))
 }
 
 get_index() {
@@ -86,8 +91,7 @@ do_move() {
 		add_mask $new_x_2 $new_y_2 $MASK_BOX
 	fi
 	(( ++moves_taken ))
-	sokoman_x=$new_x
-	sokoman_y=$new_y
+	set_sokoman_location $new_x $new_y
 }
 
 process_input() {
@@ -114,7 +118,6 @@ draw_hud() {
 draw_board() {
 	local disp="${board_head}#\n#"
 	local counter=$board_width
-	local sokoman_index=$((sokoman_y * board_width + sokoman_x))
 	for ((i=0; i<$total_tiles; ++i)); do
 		if [[ $i == $sokoman_index ]]; then
 			local disp="${disp}${TILE_SOKOMAN}"

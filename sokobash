@@ -60,12 +60,6 @@ add_target() {
 	add_mask $1 $2 $MASK_TARGET
 }
 
-game_loop() {
-	clear
-	draw_board
-	process_input
-}
-
 do_move() {
 	local d_x=$1
 	local d_y=$2
@@ -153,9 +147,25 @@ get_tile() {
 	fi
 }
 
+is_level_complete() {
+	local total_tiles=$(($board_height * $board_width))
+	for ((i=0; i<$total_tiles; ++i)); do
+		if (( board[$i] == $MASK_TARGET )); then
+			return 1
+		fi
+	done
+}
+
 reset
 load_game_state
 while true; do
-	game_loop
+	clear
+	draw_board
+	if is_level_complete; then
+		echo "# Congratulations, you have completed the level :¬)"
+		exit
+	else
+		process_input
+	fi
 done
 

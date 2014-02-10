@@ -4,17 +4,46 @@ MASK_TARGET=$((1 << 0))
 MASK_WALL=$((1 << 1))
 MASK_BOX=$((1 << 2))
 
-log() {
-	echo "# $@"
+info() {
+	echo "# $@" #> /dev/null
+}
+debug() {
+	echo "# $@" > /dev/null
 }
 
 load_game_state() {
 	board_width=5
 	board_height=5
+	local total_tiles=$(($board_height * $board_width))
+	for ((i=0; i<$total_tiles; ++i)); do
+		board[$i]=0
+	done
 	sokoman_x=1
 	sokoman_y=3
 	add_target 0 0
 	add_box 2 2
+}
+
+get_index() {
+	local x=$1
+	local y=$2
+	echo $(($y * $board_width + $x))
+}
+
+add_box() {
+	local x=$1
+	local y=$2
+	info "add_box(x=$x, y=$y)"
+	local index=$(get_index $x $y)
+	board[$index]=$MASK_BOX
+}
+
+add_target() {
+	local x=$1
+	local y=$2
+	info "add_target(x=$x, y=$y)"
+	local index=$(get_index $x $y)
+	board[$index]=$MASK_TARGET
 }
 
 game_loop() {
@@ -25,13 +54,14 @@ game_loop() {
 
 process_input() {
 	read -s -n 1 in_key
-	log "Received keyboard input: $in_key"
+	info "Received keyboard input: $in_key"
 }
 
 draw_board() {
-	for y in {-1..${board_height}}; do
+	info "board=$board"
+	for ((y=-1; y<=$board_height; ++y)); do
 		line=""
-		for x in {0..${board_width}}; do
+		for ((x=-1; x<=$board_width; ++x)); do
 			tile=$(get_tile $x $y)
 			line="${line}${tile}"
 		done
@@ -42,6 +72,7 @@ draw_board() {
 get_tile() {
 	local x=$1
 	local y=$2
+	debug "get_tile(x=$x, y=$y)"
 	if (( $x < 0 || $x >= $board_width || $y < 0 || $y >= $board_height )); then
 		echo 'w'
 		return
@@ -50,20 +81,21 @@ get_tile() {
 		echo 'S'
 		return
 	fi
-	local index=$(($y * $board_width + $x))
-	local tile=${board[$index]}
-	if $(($tile & $MASK_WALL)); then
+	local index=$(get_index $x $y)
+	local val=${board[$index]}
+	debug "val='$val'"
+	if (($val & $MASK_WALL)); then
 		echo 'w'
-	elif (( $tile & $MASK_BOX )); then
-		if (( $tile & $MASK_TARGET )); then
+	elif (($val & $MASK_BOX)); then
+		if (($val & $MASK_TARGET)); then
 			echo 'O'
 		else
 			echo 'o'
 		fi
-	elif $tile & $MASK_TARGET; then
+	elif (($val & $MASK_TARGET)); then
 		echo '.'
 	else
-		echo ' '
+		echo '_'
 	fi
 }
 

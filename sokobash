@@ -37,6 +37,10 @@ load_game_state() {
 	add_target 11 4
 	add_box 2 2
 	add_box 11 2
+	add_wall 0 1
+	add_wall 1 1
+	add_wall 2 1
+	add_wall 4 1
 }
 
 set_sokoman_location() {
@@ -53,6 +57,11 @@ get_index() {
 
 add_box() {
 	add_mask $1 $2 $MASK_BOX
+}
+
+add_wall() {
+	local index=$(get_index $1 $2)
+	board[$index]=$MASK_WALL
 }
 
 add_mask() {
@@ -107,7 +116,7 @@ process_input() {
 }
 
 draw_hud() {
-	echo "> moves=$moves_taken"
+	echo "> moves taken: $moves_taken"
 	echo ""
 }
 

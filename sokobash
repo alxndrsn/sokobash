@@ -5,6 +5,13 @@ MASK_WALL=$((1 << 1))
 MASK_BOX=$((1 << 2))
 MASK_NOT_EMPTY=$(($MASK_WALL | $MASK_BOX))
 
+TILE_EMPTY='.'
+TILE_TARGET='_'
+TILE_BOX='0'
+TILE_BOX_ON_TARGET='$'
+TILE_WALL='#'
+TILE_SOKOMAN='%'
+
 info() {
 	echo "# $@" #> /dev/null
 }
@@ -125,22 +132,22 @@ get_tile() {
 	local x=$1
 	local y=$2
 	if [[ $x == $sokoman_x && $y == $sokoman_y ]]; then
-		echo 'S'
+		echo $TILE_SOKOMAN
 		return
 	fi
 	local val=$(get_square $x $y)
 	if (($val & $MASK_WALL)); then
-		echo 'w'
+		echo $TILE_WALL
 	elif (($val & $MASK_BOX)); then
 		if (($val & $MASK_TARGET)); then
-			echo 'O'
+			echo $TILE_BOX_ON_TARGET
 		else
-			echo 'o'
+			echo $TILE_BOX
 		fi
 	elif (($val & $MASK_TARGET)); then
-		echo '.'
+		echo $TILE_TARGET
 	else
-		echo '_'
+		echo $TILE_EMPTY
 	fi
 }
 

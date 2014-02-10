@@ -1,0 +1,74 @@
+#!/bin/bash
+
+MASK_TARGET=$((1 << 0))
+MASK_WALL=$((1 << 1))
+MASK_BOX=$((1 << 2))
+
+log() {
+	echo "# $@"
+}
+
+load_game_state() {
+	board_width=5
+	board_height=5
+	sokoman_x=1
+	sokoman_y=3
+	add_target 0 0
+	add_box 2 2
+}
+
+game_loop() {
+	clear
+	draw_board
+	process_input
+}
+
+process_input() {
+	read -s -n 1 in_key
+	log "Received keyboard input: $in_key"
+}
+
+draw_board() {
+	for y in {-1..${board_height}}; do
+		line=""
+		for x in {0..${board_width}}; do
+			tile=$(get_tile $x $y)
+			line="${line}${tile}"
+		done
+		echo $line
+	done
+}
+
+get_tile() {
+	local x=$1
+	local y=$2
+	if (( $x < 0 || $x >= $board_width || $y < 0 || $y >= $board_height )); then
+		echo 'w'
+		return
+	fi
+	if [[ $x == $sokoman_x && $y == $sokoman_y ]]; then
+		echo 'S'
+		return
+	fi
+	local index=$(($y * $board_width + $x))
+	local tile=${board[$index]}
+	if $(($tile & $MASK_WALL)); then
+		echo 'w'
+	elif (( $tile & $MASK_BOX )); then
+		if (( $tile & $MASK_TARGET )); then
+			echo 'O'
+		else
+			echo 'o'
+		fi
+	elif $tile & $MASK_TARGET; then
+		echo '.'
+	else
+		echo ' '
+	fi
+}
+
+load_game_state
+#while true; do
+	game_loop
+#done
+

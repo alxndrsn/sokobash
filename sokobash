@@ -81,7 +81,6 @@ do_move() {
 process_input() {
 	while true; do
 		read -s -n 1 in_key
-		debug "Received keyboard input: $in_key"
 		case $in_key in
 			w ) if do_move 0 -1; then break; fi;;
 			a ) if do_move -1 0; then break; fi;;
@@ -125,13 +124,11 @@ get_square() {
 get_tile() {
 	local x=$1
 	local y=$2
-	debug "get_tile(x=$x, y=$y)"
 	if [[ $x == $sokoman_x && $y == $sokoman_y ]]; then
 		echo 'S'
 		return
 	fi
 	local val=$(get_square $x $y)
-	debug "val='$val'"
 	if (($val & $MASK_WALL)); then
 		echo 'w'
 	elif (($val & $MASK_BOX)); then

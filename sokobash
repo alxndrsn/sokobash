@@ -23,7 +23,7 @@ debug() {
 load_game_state() {
 	board_width=12
 	board_height=5
-	local total_tiles=$(($board_height * $board_width))
+	total_tiles=$(($board_height * $board_width))
 	for ((i=0; i<$total_tiles; ++i)); do
 		board[$i]=0
 	done
@@ -108,14 +108,22 @@ draw_hud() {
 }
 
 draw_board() {
-	for ((y=-1; y<=$board_height; ++y)); do
-		line=""
-		for ((x=-1; x<=$board_width; ++x)); do
-			tile=$(get_tile $x $y)
-			line="${line}${tile}"
-		done
-		echo $line
+	local disp=''
+	local counter=$board_width
+	local sokoman_index=$(($sokoman_y * $board_width + $sokoman_x))
+	for ((i=0; i<$total_tiles; ++i)); do
+		if [[ $i == $sokoman_index ]]; then
+			local disp="${disp}${TILE_SOKOMAN}"
+		else
+			local disp="${disp}${TILES[${board[$i]}]}"
+		fi
+		local counter=$((counter - 1))
+		if (($counter == 0)); then
+			local disp="$disp\n"
+			local counter=$board_width
+		fi
 	done
+	echo -e "${disp}"
 }
 
 get_square() {
@@ -141,7 +149,6 @@ get_tile() {
 }
 
 is_level_complete() {
-	local total_tiles=$(($board_height * $board_width))
 	for ((i=0; i<$total_tiles; ++i)); do
 		if (( board[$i] == $MASK_TARGET )); then
 			return 1
